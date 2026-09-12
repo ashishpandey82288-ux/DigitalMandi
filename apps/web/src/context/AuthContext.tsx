@@ -136,12 +136,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       // In DEMO_MODE, if email matches demo pattern, use demo login endpoint directly
-      if (IS_DEMO_MODE && email.includes('@kisanflow.local')) {
+      if (IS_DEMO_MODE && (email.includes('@kisanflow.local') || email.includes('@digitalmandi.'))) {
         let role: UserRole = 'FARMER';
         if (email.includes('operator')) role = 'CENTER_OPERATOR';
         else if (email.includes('inspector')) role = 'QUALITY_INSPECTOR';
         else if (email.includes('superadmin')) role = 'SUPER_ADMIN';
-        else if (email.includes('admin')) role = 'GOVERNMENT_ADMIN';
+        else if (email.includes('admin') || email.includes('officer')) role = 'GOVERNMENT_ADMIN';
 
         await loginAsDemoUser(role);
         return;

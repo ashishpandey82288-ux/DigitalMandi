@@ -768,7 +768,8 @@ export const SchemaViewerPage: React.FC = () => {
             <div className="space-y-1">
               <div className="flex items-center space-x-2.5">
                 <Database className="w-6 h-6 text-emerald-300" />
-                <h1 className="text-xl font-bold tracking-tight">KisanFlow — Database Schema Explorer</h1>
+                <h1 className="text-xl font-bold tracking-tight">DigitalMandi — Database Schema Explorer</h1>
+
               </div>
               <p className="text-sm text-emerald-200">
                 Complete PostgreSQL Schema (<code className="bg-emerald-800/80 px-1.5 py-0.5 rounded text-xs font-mono text-emerald-100">prisma/schema.prisma</code>) — 715 Lines, 19 Models, 16 Enums.

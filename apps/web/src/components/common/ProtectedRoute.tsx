@@ -55,9 +55,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
             <div className="p-3 bg-neutral-50 rounded-lg text-left text-xs space-y-1 text-neutral-600 border border-neutral-200">
               <div className="font-semibold text-neutral-800">Security Architecture Notice:</div>
               <p className="text-[11px] text-neutral-500">
-                In KisanFlow, frontend guards provide guided user experience, while backend API endpoints strictly
+                In DigitalMandi, frontend guards provide guided user experience, while backend API endpoints strictly
                 enforce cryptographic ID token and PostgreSQL RBAC checks (<code className="font-mono">requireRole</code>).
               </p>
+
             </div>
 
             <div className="flex justify-center gap-3 pt-2">

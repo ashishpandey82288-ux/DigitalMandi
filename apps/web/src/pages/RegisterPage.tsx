@@ -1,12 +1,12 @@
 // ==============================================================================
-// KisanFlow — Farmer Enrollment & Self-Registration Portal
-// Strict Enforcement: Self-Registration is restricted solely to role FARMER
+// DigitalMandi — Farmer Enrollment & Self-Registration Portal
+// Official Public Service Registration for Agricultural Producers
 // ==============================================================================
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { Sprout, Lock, Mail, User, Phone, MapPin, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Wheat, Lock, Mail, User, Phone, MapPin, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Card } from '../components/ui/Card.tsx';
 import { Button } from '../components/ui/Button.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -105,14 +105,14 @@ export const RegisterPage: React.FC = () => {
   if (success) {
     return (
       <div className="max-w-md mx-auto py-12">
-        <Card title="Registration Successful">
+        <Card title="Registration Successful" accentBorder="emerald">
           <div className="text-center py-6 space-y-3">
             <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <CheckCircle2 className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-bold text-neutral-900">Welcome to KisanFlow!</h3>
+            <h3 className="text-base font-bold text-neutral-900">Welcome to DigitalMandi!</h3>
             <p className="text-xs text-neutral-600 max-w-xs mx-auto">
-              Your farmer profile and secure credentials have been provisioned with default role <span className="font-semibold text-emerald-800">FARMER</span>.
+              Your farmer profile and secure credentials have been provisioned with role <span className="font-semibold text-emerald-800">FARMER</span>.
             </p>
             <p className="text-[11px] text-neutral-400">Redirecting to your farmer dashboard...</p>
           </div>
@@ -122,14 +122,23 @@ export const RegisterPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-lg mx-auto py-10 space-y-4">
-      <Card
-        title="Register as Kisan (Farmer)"
-        subtitle="Self-registration is configured exclusively for farmers. Administrative roles are assigned by system governance."
-      >
+    <div className="max-w-xl mx-auto py-10 space-y-6">
+      <div className="text-center space-y-2 mb-2">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-700 text-white shadow-sm border border-emerald-600">
+          <Wheat className="w-6 h-6 text-amber-300" />
+        </div>
+        <h2 className="text-2xl font-extrabold text-neutral-900 tracking-tight">
+          Farmer Registration Portal
+        </h2>
+        <p className="text-xs text-neutral-500 max-w-md mx-auto">
+          Enroll in the National Digital Mandi system to lock guaranteed MSP rates, schedule queue-free mandi slots, and receive direct bank disbursements.
+        </p>
+      </div>
+
+      <Card accentBorder="emerald">
         <form onSubmit={handleSubmit} className="space-y-4">
           {submitError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 flex items-start space-x-2">
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start space-x-2">
               <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <span>{submitError}</span>
             </div>
@@ -137,27 +146,29 @@ export const RegisterPage: React.FC = () => {
 
           {/* Full Name */}
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">Full Name (as per Aadhaar)</label>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              Full Name (as per Aadhaar / Official ID)
+            </label>
             <div className="relative">
               <input
                 type="text"
                 name="name"
-                placeholder="e.g. Harpreet Singh"
+                placeholder="e.g. Sardar Harpreet Singh"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 pl-9 text-xs rounded-lg border ${
+                className={`w-full px-3.5 py-2.5 pl-10 text-sm rounded-lg border ${
                   fieldErrors.name ? 'border-rose-400 bg-rose-50/20' : 'border-neutral-300'
-                } focus:outline-none focus:ring-1 focus:ring-emerald-500`}
+                } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
               />
-              <User className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+              <User className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
             </div>
             {fieldErrors.name && <p className="text-[11px] text-rose-600 mt-1">{fieldErrors.name}</p>}
           </div>
 
           {/* Email & Phone */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">Email Address</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Email Address</label>
               <div className="relative">
                 <input
                   type="email"
@@ -165,77 +176,77 @@ export const RegisterPage: React.FC = () => {
                   placeholder="harpreet@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 pl-9 text-xs rounded-lg border ${
+                  className={`w-full px-3.5 py-2.5 pl-10 text-sm rounded-lg border ${
                     fieldErrors.email ? 'border-rose-400 bg-rose-50/20' : 'border-neutral-300'
-                  } focus:outline-none focus:ring-1 focus:ring-emerald-500`}
+                  } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                 />
-                <Mail className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Mail className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
               </div>
               {fieldErrors.email && <p className="text-[11px] text-rose-600 mt-1">{fieldErrors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">Mobile Number</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Mobile Number (Aadhaar linked)</label>
               <div className="relative">
                 <input
                   type="tel"
                   name="phone"
-                  placeholder="+91 98123 45601"
+                  placeholder="+91 98765 43210"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 pl-9 text-xs rounded-lg border ${
+                  className={`w-full px-3.5 py-2.5 pl-10 text-sm rounded-lg border ${
                     fieldErrors.phone ? 'border-rose-400 bg-rose-50/20' : 'border-neutral-300'
-                  } focus:outline-none focus:ring-1 focus:ring-emerald-500`}
+                  } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                 />
-                <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Phone className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
               </div>
               {fieldErrors.phone && <p className="text-[11px] text-rose-600 mt-1">{fieldErrors.phone}</p>}
             </div>
           </div>
 
-          {/* District & State */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* State & District */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">State</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">State</label>
               <div className="relative">
                 <input
                   type="text"
                   name="state"
-                  placeholder="e.g. Haryana"
+                  placeholder="e.g. Haryana / Punjab"
                   value={formData.state}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 pl-9 text-xs rounded-lg border ${
+                  className={`w-full px-3.5 py-2.5 pl-10 text-sm rounded-lg border ${
                     fieldErrors.state ? 'border-rose-400 bg-rose-50/20' : 'border-neutral-300'
-                  } focus:outline-none focus:ring-1 focus:ring-emerald-500`}
+                  } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                 />
-                <MapPin className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <MapPin className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
               </div>
               {fieldErrors.state && <p className="text-[11px] text-rose-600 mt-1">{fieldErrors.state}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">District</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">District</label>
               <div className="relative">
                 <input
                   type="text"
                   name="district"
-                  placeholder="e.g. Karnal"
+                  placeholder="e.g. Karnal / Ludhiana"
                   value={formData.district}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 pl-9 text-xs rounded-lg border ${
+                  className={`w-full px-3.5 py-2.5 pl-10 text-sm rounded-lg border ${
                     fieldErrors.district ? 'border-rose-400 bg-rose-50/20' : 'border-neutral-300'
-                  } focus:outline-none focus:ring-1 focus:ring-emerald-500`}
+                  } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                 />
-                <MapPin className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <MapPin className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
               </div>
               {fieldErrors.district && <p className="text-[11px] text-rose-600 mt-1">{fieldErrors.district}</p>}
             </div>
           </div>
 
           {/* Password & Confirm */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">Password</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Choose Password</label>
               <div className="relative">
                 <input
                   type="password"
@@ -243,17 +254,17 @@ export const RegisterPage: React.FC = () => {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 pl-9 text-xs rounded-lg border ${
+                  className={`w-full px-3.5 py-2.5 pl-10 text-sm rounded-lg border ${
                     fieldErrors.password ? 'border-rose-400 bg-rose-50/20' : 'border-neutral-300'
-                  } focus:outline-none focus:ring-1 focus:ring-emerald-500`}
+                  } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                 />
-                <Lock className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
               </div>
               {fieldErrors.password && <p className="text-[11px] text-rose-600 mt-1">{fieldErrors.password}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">Confirm Password</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Confirm Password</label>
               <div className="relative">
                 <input
                   type="password"
@@ -261,11 +272,11 @@ export const RegisterPage: React.FC = () => {
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 pl-9 text-xs rounded-lg border ${
+                  className={`w-full px-3.5 py-2.5 pl-10 text-sm rounded-lg border ${
                     fieldErrors.confirmPassword ? 'border-rose-400 bg-rose-50/20' : 'border-neutral-300'
-                  } focus:outline-none focus:ring-1 focus:ring-emerald-500`}
+                  } focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                 />
-                <Lock className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
               </div>
               {fieldErrors.confirmPassword && (
                 <p className="text-[11px] text-rose-600 mt-1">{fieldErrors.confirmPassword}</p>
@@ -273,32 +284,34 @@ export const RegisterPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 text-[11px] text-neutral-600">
-            <strong>Security Boundary Policy:</strong> Newly enrolled accounts are safely assigned the{' '}
-            <span className="font-semibold text-emerald-800">FARMER</span> role by default. Operator and Administrative
-            credentials cannot be self-selected.
+          <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 text-xs text-neutral-600 flex items-start space-x-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed">
+              <strong>Official Security Clearance:</strong> Self-registration automatically activates verified{' '}
+              <span className="font-semibold text-emerald-800">FARMER</span> privileges. Operational Mandi Operator and Administrative roles are granted exclusively via administrative verification.
+            </p>
           </div>
 
           <div className="pt-2">
-            <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" variant="primary" className="w-full py-2.5" disabled={isSubmitting}>
               {isSubmitting ? (
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Enrolling Farmer Account...</span>
                 </div>
               ) : (
-                <div className="flex items-center justify-center space-x-1.5">
-                  <Sprout className="w-4 h-4" />
-                  <span>Submit Farmer Registration</span>
+                <div className="flex items-center justify-center space-x-2">
+                  <Wheat className="w-4 h-4" />
+                  <span>Complete Farmer Registration</span>
                 </div>
               )}
             </Button>
           </div>
 
-          <div className="text-center text-xs text-neutral-500 pt-1">
-            Already registered?{' '}
-            <Link to="/login" className="text-emerald-700 font-semibold hover:underline">
-              Sign In
+          <div className="text-center text-xs text-neutral-500 pt-2 border-t border-neutral-100">
+            Already registered with DigitalMandi?{' '}
+            <Link to="/login" className="text-emerald-700 font-bold hover:underline">
+              Sign In to Account
             </Link>
           </div>
         </form>
@@ -306,3 +319,4 @@ export const RegisterPage: React.FC = () => {
     </div>
   );
 };
+

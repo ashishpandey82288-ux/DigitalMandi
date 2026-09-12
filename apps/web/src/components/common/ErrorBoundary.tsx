@@ -28,8 +28,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('KisanFlow UI Uncaught error:', error, errorInfo);
+    console.error('DigitalMandi UI Uncaught error:', error, errorInfo);
   }
+
 
   private handleReset = () => {
     this.setState({ hasError: false, error: undefined });

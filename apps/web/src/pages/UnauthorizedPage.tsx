@@ -34,9 +34,10 @@ export const UnauthorizedPage: React.FC = () => {
         <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-left text-xs space-y-1">
           <div className="font-semibold text-neutral-800">Statutory RBAC Boundary:</div>
           <div className="text-[11px] text-neutral-500">
-            KisanFlow enforces strict role isolation between Farmers, Mandi Operators, Quality Inspectors, and Government Regulators to prevent unauthorized manipulation of procurement and DBT ledgers.
+            DigitalMandi enforces strict role isolation between Farmers, Mandi Operators, Quality Inspectors, and Government Regulators to prevent unauthorized manipulation of procurement and DBT ledgers.
           </div>
         </div>
+
 
         <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <Button

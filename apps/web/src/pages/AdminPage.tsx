@@ -725,8 +725,9 @@ export const AdminPage: React.FC = () => {
               <Globe className="w-5 h-5 text-purple-700 mt-0.5 shrink-0" />
               <div className="text-xs text-neutral-700">
                 <span className="font-bold text-neutral-900 block text-sm">Digital Public Infrastructure & Free External Adapters</span>
-                KisanFlow interfaces with free and open-data government ecosystems. Real, simulation, and cadastral baseline statuses are strictly separated without misrepresenting simulations as live government connections.
+                DigitalMandi interfaces with free and open-data government ecosystems. Real, simulation, and cadastral baseline statuses are strictly separated without misrepresenting simulations as live government connections.
               </div>
+
             </div>
           </div>
 
