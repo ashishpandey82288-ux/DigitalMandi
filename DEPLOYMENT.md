@@ -170,6 +170,13 @@ location / {
 ```
 All assets in `/assets/` should be cached with `Cache-Control: public, max-age=31536000, immutable`.
 
+### 7.3 Cloudflare Workers / Pages Deployment
+For automated deployments via Cloudflare Workers / Pages:
+- **Build Command**: `npm run build:web`
+- **Output Directory**: `dist`
+- **Deploy Command**: `npx wrangler deploy`
+- **Build Environment Variables**: Configure `VITE_API_URL` and `VITE_FIREBASE_*` credentials in the Cloudflare dashboard under **Settings → Variables and Secrets (Build variables)**.
+
 ---
 
 ## 8. Security Hardening & Zero-Trust Checklist
