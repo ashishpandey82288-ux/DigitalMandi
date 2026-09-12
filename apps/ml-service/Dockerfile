@@ -16,13 +16,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency specifications if any, or install production FastAPI stack
-COPY apps/ml-service/requirements.txt* /app/
+# Copy dependency specifications
+COPY requirements.txt* /app/
 RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; \
     else pip install --no-cache-dir fastapi uvicorn pydantic; fi
 
 # Copy application code
-COPY apps/ml-service /app/
+COPY . /app/
 
 # Create unprivileged service user
 RUN useradd -m -u 1001 kisanflow_ml && \

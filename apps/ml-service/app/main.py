@@ -156,6 +156,16 @@ if FASTAPI_AVAILABLE:
             status="running"
         )
 
+    @app.get("/ready")
+    @app.get("/api/ml/ready")
+    async def get_ready():
+        return {
+            "success": True,
+            "service": "KisanFlow ML Service",
+            "status": "ready",
+            "mode": "SELF_HOSTED_LOCAL"
+        }
+
     @app.get("/")
     async def root():
         return {
@@ -240,6 +250,20 @@ class FallbackHTTPRequestHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "service": "KisanFlow ML Service",
                 "status": "running",
+                "engine": "FastAPI/Standard-Fallback",
+                "mode": "SELF_HOSTED_LOCAL",
+                "version": "1.0.0-phase7"
+            }
+            self.wfile.write(json.dumps(response).encode("utf-8"))
+        elif self.path in ("/ready", "/api/ml/ready"):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            response = {
+                "success": True,
+                "service": "KisanFlow ML Service",
+                "status": "ready",
                 "engine": "FastAPI/Standard-Fallback",
                 "mode": "SELF_HOSTED_LOCAL",
                 "version": "1.0.0-phase7"
