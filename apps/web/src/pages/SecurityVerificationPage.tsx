@@ -9,6 +9,7 @@ import { Card } from '../components/ui/Card.tsx';
 import { Button } from '../components/ui/Button.tsx';
 import { Badge } from '../components/ui/Badge.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { getApiUrl } from '../services/apiClient.ts';
 
 interface TestResult {
   endpoint: string;
@@ -88,7 +89,7 @@ export const SecurityVerificationPage: React.FC = () => {
     for (const t of tests) {
       const start = performance.now();
       try {
-        const res = await fetch(t.endpoint, {
+        const res = await fetch(getApiUrl(t.endpoint), {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const duration = Math.round(performance.now() - start);
@@ -118,7 +119,7 @@ export const SecurityVerificationPage: React.FC = () => {
     // Fetch audit ledger if admin
     if (['GOVERNMENT_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '')) {
       try {
-        const auditRes = await fetch('/api/auth/audit-trail', {
+        const auditRes = await fetch(getApiUrl('/api/auth/audit-trail'), {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (auditRes.ok) {

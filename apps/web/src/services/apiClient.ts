@@ -5,15 +5,35 @@
 import axios from 'axios';
 
 // Dynamically use current host or configured API URL
-const baseURL = import.meta.env.VITE_API_URL || '/api';
+// Normalizes base URL so both 'https://api.example.com' and 'https://api.example.com/api' work
+const rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
+const normalizedBaseURL =
+  rawApiUrl.startsWith('http') && !rawApiUrl.endsWith('/api')
+    ? `${rawApiUrl.replace(/\/+$/, '')}/api`
+    : rawApiUrl.replace(/\/+$/, '') || '/api';
 
 export const apiClient = axios.create({
-  baseURL,
+  baseURL: normalizedBaseURL,
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000,
 });
+
+/**
+ * Resolves an API path against the configured VITE_API_URL.
+ * Supports both relative paths ('/api/auth/me', '/auth/me') and absolute URLs.
+ */
+export function getApiUrl(endpoint: string = ''): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (normalizedBaseURL.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+    return `${normalizedBaseURL}${cleanEndpoint.substring(4)}`;
+  }
+  return `${normalizedBaseURL}${cleanEndpoint}`;
+}
 
 // Request interceptor: attach auth token if available (Phase 2)
 apiClient.interceptors.request.use(

@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { auth, IS_DEMO_MODE } from '../config/firebase.ts';
 import { UserRole, UserDTO } from '../../../../packages/types/src/index.ts';
+import { getApiUrl } from '../services/apiClient.ts';
 
 export interface RegisterPayload {
   name: string;
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Syncs user profile from Express backend /api/auth/me
   const fetchUserProfile = useCallback(async (authToken: string): Promise<UserDTO | null> => {
     try {
-      const response = await fetch('/api/auth/me', {
+      const response = await fetch(getApiUrl('/api/auth/me'), {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -96,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setToken(idToken);
 
               // Sync with backend to ensure PostgreSQL record and role resolution
-              const syncRes = await fetch('/api/auth/sync', {
+              const syncRes = await fetch(getApiUrl('/api/auth/sync'), {
                 method: 'POST',
                 headers: {
                   Authorization: `Bearer ${idToken}`,
@@ -174,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(idToken);
 
       // Call backend to initialize PostgreSQL user (strictly role FARMER)
-      const res = await fetch('/api/auth/sync', {
+      const res = await fetch(getApiUrl('/api/auth/sync'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -205,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginAsDemoUser = async (role: UserRole): Promise<void> => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/demo-login', {
+      const res = await fetch(getApiUrl('/api/auth/demo-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role }),
@@ -232,7 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       if (token) {
         try {
-          await fetch('/api/auth/logout', {
+          await fetch(getApiUrl('/api/auth/logout'), {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
           });

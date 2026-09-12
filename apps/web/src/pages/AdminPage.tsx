@@ -47,6 +47,7 @@ import {
   getLogisticsReport,
   getCenterPerformanceReport,
 } from '../services/reportService.ts';
+import { getApiUrl } from '../services/apiClient.ts';
 
 type AdminTab = 'OVERVIEW' | 'CENTERS' | 'CROPS_MSP' | 'PAYMENTS_DBT' | 'REPORTS' | 'AUDIT_LEDGER' | 'INTEGRATIONS';
 type ReportType = 'PROCUREMENT' | 'PAYMENTS' | 'QUALITY' | 'LOGISTICS' | 'CENTERS';
@@ -100,7 +101,7 @@ export const AdminPage: React.FC = () => {
 
   const loadAuditTrail = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/audit-trail', {
+      const res = await fetch(getApiUrl('/api/auth/audit-trail'), {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.ok) {
