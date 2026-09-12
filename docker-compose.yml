@@ -1,0 +1,124 @@
+# ==============================================================================
+# KisanFlow — Full Stack Production / Staging Docker Compose Configuration
+# Services: PostgreSQL 16, Redis 7, Python ML Service, Node/Express API, Nginx Web
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  # 1. Primary Relational Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: kisanflow_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kisanflow_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kisanflow_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-kisanflow_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kisanflow_user} -d ${POSTGRES_DB:-kisanflow_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. In-Memory Cache & Distributed Lock Store
+  redis:
+    image: redis:7-alpine
+    container_name: kisanflow_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. Machine Learning Computer Vision & Quality Grading Microservice
+  ml-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.ml
+    container_name: kisanflow_ml
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+      HOST: 0.0.0.0
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # 4. Core Backend Express API & Application Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: kisanflow_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kisanflow_user}:${POSTGRES_PASSWORD:-kisanflow_secure_password}@postgres:5432/${POSTGRES_DB:-kisanflow_db}?schema=public
+      REDIS_URL: redis://redis:6379
+      ML_SERVICE_URL: http://ml-service:8000
+      JWT_SECRET: ${JWT_SECRET:-}
+      DEMO_MODE: ${DEMO_MODE:-false}
+      WEATHER_PROVIDER: ${WEATHER_PROVIDER:-open-meteo}
+      TRANSLATION_PROVIDER: ${TRANSLATION_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DBT_MODE: ${DBT_MODE:-simulation}
+      DILRMP_API_URL: ${DILRMP_API_URL:-https://api.dilrmp.nic.in/land/v1}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ml-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # 5. Production Web Frontend (Nginx SPA with API Reverse Proxy)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: kisanflow_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

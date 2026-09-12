@@ -1,0 +1,8 @@
+{
+  "name": "KisanFlow — Smart Procurement & Direct MSP Engine",
+  "description": "Smart Procurement & Direct MSP Engine for transparent agricultural procurement, queue management, and fair pricing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
