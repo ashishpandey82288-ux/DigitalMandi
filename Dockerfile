@@ -27,9 +27,9 @@ COPY apps ./apps
 COPY packages ./packages
 COPY server.ts ./
 
-# Build production assets (Vite SPA frontend + esbuild CommonJS backend bundle)
+# Build production API bundle (Dedicated Express API, zero Vite runtime)
 ENV NODE_ENV=production
-RUN npm run build
+RUN npm run build:api
 
 # ------------------------------------------------------------------------------
 # Production Runtime Stage
@@ -43,7 +43,7 @@ ENV PORT=3000
 
 # Create non-privileged service user
 RUN addgroup -g 1001 -S kisanflow && \
-    adduser -S kisanflow -u 1001
+  adduser -S kisanflow -u 1001
 
 # Copy built distribution artifacts & production node_modules
 COPY --from=builder /app/package.json ./package.json
@@ -61,4 +61,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-CMD ["node", "dist/server.cjs"]
+CMD ["node", "dist/api.cjs"]
