@@ -6,7 +6,12 @@ import axios from 'axios';
 
 // Dynamically use current host or configured API URL
 // Normalizes base URL so both 'https://api.example.com' and 'https://api.example.com/api' work
-const rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
+const envApiUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL
+  ? import.meta.env.VITE_API_URL
+  : (typeof process !== 'undefined' && process.env?.VITE_API_URL
+      ? process.env.VITE_API_URL
+      : (typeof window !== 'undefined' ? '/api' : 'http://localhost:3000/api'));
+const rawApiUrl = (envApiUrl || '/api').trim();
 const normalizedBaseURL =
   rawApiUrl.startsWith('http') && !rawApiUrl.endsWith('/api')
     ? `${rawApiUrl.replace(/\/+$/, '')}/api`

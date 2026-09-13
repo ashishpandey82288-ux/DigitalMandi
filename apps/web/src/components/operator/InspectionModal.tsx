@@ -67,11 +67,18 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         brokenGrainsPercentage: parseFloat(brokenGrains),
         remarks,
       });
+
+      if (!res || !res.aiPredictedGrade) {
+        setError('AI assessment unavailable — manual inspection required.');
+        return;
+      }
+
       setInspectionResult(res);
-      setVerifiedGrade(res.aiPredictedGrade || 'GRADE_A');
+      setVerifiedGrade(res.finalGrade || res.aiPredictedGrade || 'GRADE_A');
       setIsVerifying(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to conduct quality inspection');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Quality inspection service temporarily unavailable.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -209,7 +216,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between text-xs text-blue-900">
                 <div className="flex items-center space-x-2">
                   <Camera className="w-4 h-4 text-blue-600" />
-                  <span>Optical Camera & ML Grading Provider Ready (Model v2.4-cv)</span>
+                  <span>Optical Camera & DigitalMandi ML Quality Engine Ready</span>
                 </div>
                 <Badge variant="info">Agmarknet FAQ</Badge>
               </div>
@@ -241,8 +248,8 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                       AI Computer Vision Model Prediction
                     </span>
                   </div>
-                  <Badge variant="success">
-                    Confidence: {Math.round((inspectionResult?.aiConfidenceScore || 0.94) * 100)}%
+                  <Badge variant={inspectionResult?.aiConfidenceScore && inspectionResult.aiConfidenceScore >= 0.85 ? "success" : "warning"}>
+                    Confidence: {inspectionResult?.aiConfidenceScore !== undefined ? `${Math.round(inspectionResult.aiConfidenceScore * 100)}%` : 'Assessed'}
                   </Badge>
                 </div>
 
@@ -250,22 +257,32 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                   <div>
                     <span className="text-neutral-500">Predicted Grade:</span>
                     <div className="font-bold text-emerald-800 text-sm">
-                      {inspectionResult?.aiPredictedGrade?.replace('_', ' ')}
+                      {inspectionResult?.aiPredictedGrade ? inspectionResult.aiPredictedGrade.replace('_', ' ') : 'N/A'}
                     </div>
                   </div>
                   <div>
                     <span className="text-neutral-500">Moisture Deduction:</span>
                     <div className="font-bold text-neutral-800">
-                      {inspectionResult?.totalDeductionPercentage || 0}%
+                      {inspectionResult?.totalDeductionPercentage ?? 0}%
                     </div>
                   </div>
                   <div>
                     <span className="text-neutral-500">Model Version:</span>
-                    <div className="font-mono text-[11px] text-neutral-700">
-                      {inspectionResult?.aiModelVersion || 'agri-cv-v2.4'}
+                    <div className="font-mono text-[11px] text-neutral-700 truncate" title={inspectionResult?.aiModelVersion}>
+                      {inspectionResult?.aiModelVersion || 'DigitalMandi-GrainVision-Wheat-v1.0'}
                     </div>
                   </div>
                 </div>
+
+                {/* Display Inference Status & Statutory Recommendation if available */}
+                {(inspectionResult?.recommendation || inspectionResult?.aiInferenceStatus) && (
+                  <div className="mt-2 pt-2 border-t border-emerald-200/60 flex items-start space-x-2 text-[11px] text-emerald-900">
+                    <div className="flex-1">
+                      <span className="font-semibold">AI Assessment: </span>
+                      <span>{inspectionResult?.recommendation || `Status: ${inspectionResult?.aiInferenceStatus}`}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Human Inspector Certification Form */}
