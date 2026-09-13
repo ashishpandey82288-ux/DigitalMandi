@@ -28,6 +28,7 @@
     "test:phase7": "tsx scripts/test-phase7-e2e-master.ts",
     "test:concurrency": "tsx scripts/test-concurrency.ts",
     "test:resilience": "tsx scripts/test-production-resilience.ts",
+    "test:audit": "tsx scripts/test-audit-ledger-determinism.ts",
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
     "db:migrate": "prisma migrate dev"
