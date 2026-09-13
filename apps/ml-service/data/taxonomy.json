@@ -1,0 +1,141 @@
+{
+  "taxonomy_version": "1.0.0",
+  "supported_crops": [
+    {
+      "code": "WHEAT",
+      "common_name": "Wheat",
+      "scientific_name": "Triticum aestivum",
+      "standard_moisture_limit": 12.0
+    },
+    {
+      "code": "PADDY",
+      "common_name": "Rice / Paddy",
+      "scientific_name": "Oryza sativa",
+      "standard_moisture_limit": 14.0
+    },
+    {
+      "code": "MAIZE",
+      "common_name": "Maize",
+      "scientific_name": "Zea mays",
+      "standard_moisture_limit": 14.0
+    },
+    {
+      "code": "SORGHUM",
+      "common_name": "Sorghum",
+      "scientific_name": "Sorghum bicolor",
+      "standard_moisture_limit": 12.0
+    }
+  ],
+  "visual_defect_classes": [
+    {
+      "id": "SOUND",
+      "display_name": "Sound / Healthy Kernel",
+      "description": "Intact, fully filled, typical color and morphology.",
+      "severity_weight": 0.0,
+      "max_faq_limit_percentage": 100.0
+    },
+    {
+      "id": "BROKEN",
+      "display_name": "Broken Grain",
+      "description": "Pieces of kernels that are less than three-fourths of the size of full kernel.",
+      "severity_weight": 0.3,
+      "max_faq_limit_percentage": 7.5
+    },
+    {
+      "id": "DAMAGED",
+      "display_name": "Damaged Kernel",
+      "description": "Kernels affected by mechanical injury, heat, or internal weathering.",
+      "severity_weight": 0.6,
+      "max_faq_limit_percentage": 4.5
+    },
+    {
+      "id": "DISCOLORED",
+      "display_name": "Discolored Kernel",
+      "description": "Kernels having abnormal alteration of natural color.",
+      "severity_weight": 0.4,
+      "max_faq_limit_percentage": 4.0
+    },
+    {
+      "id": "SPROUTED",
+      "display_name": "Sprouted / Germinated",
+      "description": "Kernels where the radicle has ruptured the seed coat.",
+      "severity_weight": 0.8,
+      "max_faq_limit_percentage": 2.0
+    },
+    {
+      "id": "INSECT_DAMAGED",
+      "display_name": "Insect Damaged / Bored",
+      "description": "Kernels partially eaten or bored by grain weevils or storage pests.",
+      "severity_weight": 0.9,
+      "max_faq_limit_percentage": 1.0
+    },
+    {
+      "id": "MOLDY",
+      "display_name": "Moldy / Fungal Infected",
+      "description": "Kernels with visible fungal growth, mildew, or rot.",
+      "severity_weight": 1.0,
+      "max_faq_limit_percentage": 0.5
+    },
+    {
+      "id": "FUSARIUM_SHRIVELED",
+      "display_name": "Shriveled / Fusarium",
+      "description": "Immature, shrunken, wrinkled, or head blight affected kernels.",
+      "severity_weight": 0.7,
+      "max_faq_limit_percentage": 3.0
+    },
+    {
+      "id": "BLACK_POINT",
+      "display_name": "Black Point",
+      "description": "Dark browning or blackening localized at the embryo tip of the kernel.",
+      "severity_weight": 0.5,
+      "max_faq_limit_percentage": 3.0
+    },
+    {
+      "id": "FOREIGN_MATTER",
+      "display_name": "Foreign Matter / Impurities",
+      "description": "Stones, dirt, sand, chaff, straw, and seeds of other plants.",
+      "severity_weight": 1.0,
+      "max_faq_limit_percentage": 2.0
+    }
+  ],
+  "external_source_mappings": {
+    "GrainSet": {
+      "Healthy": "SOUND",
+      "Broken": "BROKEN",
+      "Sprouted": "SPROUTED",
+      "Mildewed": "MOLDY",
+      "Black point": "BLACK_POINT",
+      "Scab": "FUSARIUM_SHRIVELED",
+      "Shriveled": "FUSARIUM_SHRIVELED",
+      "Insect-damaged": "INSECT_DAMAGED",
+      "Impurity": "FOREIGN_MATTER"
+    },
+    "GrainDet": {
+      "sound_grain": "SOUND",
+      "broken_grain": "BROKEN",
+      "damaged_grain": "DAMAGED",
+      "sprouted_grain": "SPROUTED",
+      "mildew_grain": "MOLDY",
+      "shriveled_grain": "FUSARIUM_SHRIVELED",
+      "insect_grain": "INSECT_DAMAGED",
+      "foreign_matter": "FOREIGN_MATTER"
+    },
+    "WheatVision": {
+      "sound": "SOUND",
+      "broken": "BROKEN",
+      "damaged": "DAMAGED",
+      "sprouted": "SPROUTED",
+      "insect": "INSECT_DAMAGED",
+      "mold": "MOLDY",
+      "other": "FOREIGN_MATTER"
+    },
+    "RiceSeedMendeley": {
+      "sound_seed": "SOUND",
+      "broken_seed": "BROKEN",
+      "chalky_damaged": "DAMAGED",
+      "discolored": "DISCOLORED",
+      "sprouted": "SPROUTED",
+      "weed_seed_impurity": "FOREIGN_MATTER"
+    }
+  }
+}

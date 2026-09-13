@@ -1,0 +1,185 @@
+{
+  "model_version": "DigitalMandi-GrainVision-Wheat-v1.0",
+  "architecture": "GrainMorphology-RandomForest-Calibrated",
+  "dataset_version": "1.0.0",
+  "dataset_hash": "19a8655ba1d918f7",
+  "preprocessing_version": "1.0.0-letterbox-rgb",
+  "classes": [
+    "BROKEN",
+    "DAMAGED",
+    "DISCOLORED",
+    "FOREIGN_MATTER",
+    "INSECT_DAMAGED",
+    "MOLDY",
+    "SOUND",
+    "SPROUTED"
+  ],
+  "training_timestamp": "2026-09-12T23:59:17Z",
+  "metrics": {
+    "overall_accuracy": 0.85,
+    "macro_precision": 0.8452,
+    "macro_recall": 0.85,
+    "macro_f1": 0.8438,
+    "weighted_precision": 0.8452,
+    "weighted_recall": 0.85,
+    "weighted_f1": 0.8438,
+    "classes": [
+      "BROKEN",
+      "DAMAGED",
+      "DISCOLORED",
+      "FOREIGN_MATTER",
+      "INSECT_DAMAGED",
+      "MOLDY",
+      "SOUND",
+      "SPROUTED"
+    ],
+    "per_class": {
+      "BROKEN": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "DAMAGED": {
+        "precision": 0.3333,
+        "recall": 0.2,
+        "f1_score": 0.25,
+        "support": 5
+      },
+      "DISCOLORED": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "FOREIGN_MATTER": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "INSECT_DAMAGED": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "MOLDY": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      },
+      "SOUND": {
+        "precision": 0.4286,
+        "recall": 0.6,
+        "f1_score": 0.5,
+        "support": 5
+      },
+      "SPROUTED": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 5
+      }
+    },
+    "confusion_matrix": [
+      [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        4,
+        0
+      ],
+      [
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5
+      ]
+    ]
+  },
+  "training_params": {
+    "n_estimators": 100,
+    "max_depth": 12,
+    "calibration": "sigmoid-prefit",
+    "fit_time_seconds": 0.402,
+    "augment_factor": 2,
+    "feature_dim": 23,
+    "train_samples_augmented": 480,
+    "test_samples": 40
+  },
+  "runtime_target": "CPU-Optimized (RAM < 60MB, Latency < 50ms)",
+  "promotion_record": {
+    "promoted_at": "2026-09-12T23:59:17Z",
+    "approved_by": "Automated Benchmark Validator",
+    "previous_production_version": null
+  }
+}

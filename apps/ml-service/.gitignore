@@ -1,0 +1,17 @@
+# DigitalMandi ML Service .gitignore
+data/raw/
+data/processed/
+data/splits/
+models/archive/
+*.pt
+*.pth
+*.onnx
+*.bin
+*.tar.gz
+*.zip
+*.pkl
+*.pickle
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage

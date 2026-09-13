@@ -46,3 +46,17 @@ ENV/
 # Operating System Files
 .DS_Store
 Thumbs.db
+
+# ML Service Large Datasets & Weight Checkpoints (Do NOT commit raw/large datasets)
+apps/ml-service/data/raw/
+apps/ml-service/data/processed/
+apps/ml-service/data/splits/
+apps/ml-service/models/archive/
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.pickle
+
+# Audit Snapshots
+scripts/audit_snapshot_*.json

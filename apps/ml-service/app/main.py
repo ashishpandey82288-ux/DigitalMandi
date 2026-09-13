@@ -18,10 +18,31 @@ try:
 except ImportError:
     FASTAPI_AVAILABLE = False
 
+import os
+import sys
+
+ml_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ml_root not in sys.path:
+    sys.path.insert(0, ml_root)
+
+try:
+    from inference.engine import DigitalMandiGradingEngine
+    grading_engine = DigitalMandiGradingEngine()
+except Exception as _init_err:
+    print(f"[ML Service] Notice: GradingEngine init deferred or fallback active: {_init_err}")
+    grading_engine = None
+
 
 def validate_image_payload(image_payload: str) -> bool:
-    """Validates whether image payload is a well-formed HTTP(S) URL or valid base64 data URI."""
+    """Validates whether image payload is a well-formed safe HTTP(S) URL, local path, or valid base64 data URI."""
     if not image_payload:
+        return True
+    try:
+        from preprocessing.validator import validate_image_payload as _val
+        return _val(image_payload)
+    except Exception:
+        pass
+    if os.path.exists(image_payload):
         return True
     if image_payload.startswith(("http://", "https://")):
         return True
@@ -29,7 +50,6 @@ def validate_image_payload(image_payload: str) -> bool:
         match = re.match(r"^data:image/(?:jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$", image_payload)
         if not match:
             return False
-        # Test base64 decoding integrity
         try:
             raw_b64 = match.group(1)
             decoded = base64.b64decode(raw_b64, validate=True)
@@ -185,6 +205,41 @@ if FASTAPI_AVAILABLE:
                 detail="Malformed image payload: image must be a valid HTTPS URL or base64 data URI (jpeg/png/webp)"
             )
 
+        # Primary Path: Self-Hosted Production ML Engine
+        if grading_engine is not None:
+            try:
+                res = grading_engine.grade_sample(
+                    sample_reference=request.sample_reference,
+                    crop_name=request.crop_name,
+                    moisture_percentage=float(request.moisture_percentage),
+                    standard_moisture_limit=float(request.standard_moisture_limit),
+                    foreign_matter_percentage=float(request.foreign_matter_percentage) if request.foreign_matter_percentage is not None else None,
+                    damaged_grains_percentage=float(request.damaged_grains_percentage) if request.damaged_grains_percentage is not None else None,
+                    broken_grains_percentage=float(request.broken_grains_percentage) if request.broken_grains_percentage is not None else None,
+                    sample_image_url=request.sample_image_url
+                )
+                return GradingResponse(
+                    success=True,
+                    sample_reference=res["sample_reference"],
+                    ai_model_version=res["ai_model_version"],
+                    ai_confidence_score=res["ai_confidence_score"],
+                    ai_inference_status=res["ai_inference_status"],
+                    predicted_grade=res["predicted_grade"],
+                    moisture_percentage=res["moisture_percentage"],
+                    standard_moisture_limit=res["standard_moisture_limit"],
+                    is_moisture_pass=res["is_moisture_pass"],
+                    excess_moisture_percentage=res["excess_moisture_percentage"],
+                    foreign_matter_percentage=res["foreign_matter_percentage"],
+                    damaged_grains_percentage=res["damaged_grains_percentage"],
+                    broken_grains_percentage=res["broken_grains_percentage"],
+                    parameter_analysis=QualityParameterAnalysis(**res["parameter_analysis"]),
+                    recommendation=res["recommendation"],
+                    visual_defect_heatmap_url=res["visual_defect_heatmap_url"]
+                )
+            except Exception as ml_err:
+                print(f"[ML Service] Notice: ML Engine error ({ml_err}). Proceeding to heuristic fallback.")
+
+        # Fallback Engine Path
         moisture = round(float(request.moisture_percentage), 2)
         standard_limit = round(float(request.standard_moisture_limit), 2)
         excess_moisture = max(0.0, round(moisture - standard_limit, 2))
@@ -294,6 +349,29 @@ class FallbackHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"detail": "Malformed image payload"}).encode("utf-8"))
                 return
 
+            # Primary ML Path
+            if grading_engine is not None:
+                try:
+                    res = grading_engine.grade_sample(
+                        sample_reference=payload.get("sample_reference", "SMP-LOCAL"),
+                        crop_name=payload.get("crop_name", "Wheat"),
+                        moisture_percentage=float(payload.get("moisture_percentage", 12.0)),
+                        standard_moisture_limit=float(payload.get("standard_moisture_limit", 12.0)),
+                        foreign_matter_percentage=float(payload["foreign_matter_percentage"]) if "foreign_matter_percentage" in payload and payload["foreign_matter_percentage"] is not None else None,
+                        damaged_grains_percentage=float(payload["damaged_grains_percentage"]) if "damaged_grains_percentage" in payload and payload["damaged_grains_percentage"] is not None else None,
+                        broken_grains_percentage=float(payload["broken_grains_percentage"]) if "broken_grains_percentage" in payload and payload["broken_grains_percentage"] is not None else None,
+                        sample_image_url=image_url
+                    )
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(res).encode("utf-8"))
+                    return
+                except Exception as ml_err:
+                    print(f"[ML Service] Notice: FallbackHTTP ML Engine error ({ml_err}). Proceeding to heuristic.")
+
+            # Fallback heuristic path
             moisture = float(payload.get("moisture_percentage", 12.0))
             std_limit = float(payload.get("standard_moisture_limit", 12.0))
             excess_m = max(0.0, round(moisture - std_limit, 2))
