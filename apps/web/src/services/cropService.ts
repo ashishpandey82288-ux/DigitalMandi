@@ -80,7 +80,21 @@ export async function registerFarmerCrop(payload: {
   return res.data.data;
 }
 
-export async function getFarmerFarms(): Promise<any[]> {
+export interface FarmDTO {
+  id: string;
+  farmName: string;
+  landParcelNumber: string;
+  totalAreaAcres: number;
+  landAreaUnit?: string;
+  village: string;
+  district?: string;
+  state?: string;
+  irrigationType?: string;
+  soilType?: string;
+  verificationStatus?: string;
+}
+
+export async function getFarmerFarms(): Promise<FarmDTO[]> {
   const res = await apiClient.get('/farmer/farms');
   return res.data.data || [];
 }

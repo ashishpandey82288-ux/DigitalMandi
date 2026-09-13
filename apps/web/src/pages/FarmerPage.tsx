@@ -50,6 +50,7 @@ import { mandiService } from '../services/mandiService.ts';
 import { kccService } from '../services/kccService.ts';
 import { WeatherDataDTO, MandiPriceResponseDTO, KCCAdvisoryDTO, KCCVerificationResultDTO } from '@kisanflow/types';
 import { BookingWizardModal } from '../components/farmer/BookingWizardModal.tsx';
+import { RegisterCropModal } from '../components/farmer/RegisterCropModal.tsx';
 import { QRPassModal } from '../components/common/QRPassModal.tsx';
 
 type TabType = 'OVERVIEW' | 'FARMS_CROPS' | 'BOOKINGS' | 'QUALITY_WEIGHMENT' | 'PAYMENTS' | 'LOGISTICS' | 'NOTIFICATIONS' | 'MANDI_ADVISORY';
@@ -85,14 +86,6 @@ export const FarmerPage: React.FC = () => {
     soilType: 'Alluvial Loam',
   });
 
-  // Form states for Crop
-  const [cropForm, setCropForm] = useState({
-    farmId: '',
-    cropId: '',
-    season: 'RABI' as 'KHARIF' | 'RABI' | 'ZAID',
-    cultivatedArea: '',
-    expectedYield: '',
-  });
 
   // Master Crops Catalog
   const [masterCrops, setMasterCrops] = useState<any[]>([]);
@@ -199,43 +192,6 @@ export const FarmerPage: React.FC = () => {
     }
   };
 
-  // Handle Add Crop
-  const handleCreateCrop = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const farmId = cropForm.farmId || dashboardData?.farms[0]?.id;
-      const cropId = cropForm.cropId || masterCrops[0]?.id;
-
-      if (!farmId || !cropId) {
-        throw new Error('Please select a registered farm and crop.');
-      }
-
-      const payload = {
-        farmId,
-        cropId,
-        season: cropForm.season,
-        cultivatedArea: parseFloat(cropForm.cultivatedArea),
-        expectedYield: cropForm.expectedYield ? parseFloat(cropForm.expectedYield) : undefined,
-      };
-
-      const res = await apiClient.post('/farmer/crops', payload);
-      if (res.data?.success) {
-        setFeedback('Crop cultivation registered successfully.');
-        setShowAddCrop(false);
-        setCropForm({
-          farmId: '',
-          cropId: '',
-          season: 'RABI',
-          cultivatedArea: '',
-          expectedYield: '',
-        });
-        await loadAllData();
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to register crop.');
-    }
-  };
 
   // Handle Booking Cancellation
   const handleCancelBooking = async (bookingId: string) => {
@@ -778,80 +734,20 @@ export const FarmerPage: React.FC = () => {
           )}
 
           {/* Add Crop Modal */}
-          {showAddCrop && (
-            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 border border-neutral-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-neutral-900">Register Cultivated Crop</h3>
-                  <button onClick={() => setShowAddCrop(false)} className="text-neutral-400 hover:text-neutral-600">
-                    <XCircle className="w-5 h-5" />
-                  </button>
-                </div>
-                <form onSubmit={handleCreateCrop} className="space-y-3 text-xs">
-                  <div>
-                    <label className="font-semibold block mb-1">Select Farm Parcel</label>
-                    <select
-                      value={cropForm.farmId}
-                      onChange={(e) => setCropForm({ ...cropForm, farmId: e.target.value })}
-                      className="w-full rounded-lg border border-neutral-300 p-2 bg-white text-neutral-900"
-                    >
-                      {registeredFarms.map((f) => (
-                        <option key={f.id} value={f.id}>{f.farmName} ({f.totalAreaAcres} Acres)</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="font-semibold block mb-1">Select Crop</label>
-                    <select
-                      value={cropForm.cropId}
-                      onChange={(e) => setCropForm({ ...cropForm, cropId: e.target.value })}
-                      className="w-full rounded-lg border border-neutral-300 p-2 bg-white text-neutral-900"
-                    >
-                      {masterCrops.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="font-semibold block mb-1">Season</label>
-                    <select
-                      value={cropForm.season}
-                      onChange={(e: any) => setCropForm({ ...cropForm, season: e.target.value })}
-                      className="w-full rounded-lg border border-neutral-300 p-2 bg-white text-neutral-900"
-                    >
-                      <option value="RABI">Rabi (Winter)</option>
-                      <option value="KHARIF">Kharif (Monsoon)</option>
-                      <option value="ZAID">Zaid (Summer)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="font-semibold block mb-1">Cultivated Area (Acres)</label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={cropForm.cultivatedArea}
-                      onChange={(e) => setCropForm({ ...cropForm, cultivatedArea: e.target.value })}
-                      placeholder="e.g. 4.0"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold block mb-1">Expected Yield (Quintals)</label>
-                    <Input
-                      type="number"
-                      value={cropForm.expectedYield}
-                      onChange={(e) => setCropForm({ ...cropForm, expectedYield: e.target.value })}
-                      placeholder="e.g. 80"
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2 pt-2">
-                    <Button variant="secondary" size="sm" type="button" onClick={() => setShowAddCrop(false)}>Cancel</Button>
-                    <Button variant="primary" size="sm" type="submit">Register Crop</Button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
+          <RegisterCropModal
+            isOpen={showAddCrop}
+            onClose={() => setShowAddCrop(false)}
+            onCropRegistered={async () => {
+              setFeedback('Crop cultivation registered successfully.');
+              await loadAllData();
+            }}
+            onOpenAddFarm={() => {
+              setShowAddCrop(false);
+              setShowAddFarm(true);
+            }}
+            initialFarms={registeredFarms}
+            initialCrops={masterCrops}
+          />
         </div>
       )}
 
