@@ -1,25 +1,19 @@
 // ==============================================================================
 // DigitalMandi — Register Cultivated Crop Modal
-// Connects Land Parcels with Crop Master for Statutory MSP Procurement Eligibility
+// Direct Cultivated Crop Registration for Statutory MSP Procurement Eligibility
 // ==============================================================================
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Sprout,
-  MapPin,
-  ShieldCheck,
   AlertCircle,
-  Plus,
   ChevronDown,
   Info,
   Loader2,
-  Calendar,
-  Scale,
 } from 'lucide-react';
 import { Button } from '../ui/Button.tsx';
 import { Input } from '../ui/Input.tsx';
-import { Badge } from '../ui/Badge.tsx';
 import {
   getFarmerFarms,
   getCrops,
@@ -32,7 +26,6 @@ export interface RegisterCropModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCropRegistered: () => void;
-  onOpenAddFarm?: () => void;
   initialFarms?: FarmDTO[];
   initialCrops?: CropMasterDTO[];
 }
@@ -41,14 +34,13 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
   isOpen,
   onClose,
   onCropRegistered,
-  onOpenAddFarm,
   initialFarms,
   initialCrops,
 }) => {
   // Data state
   const [farms, setFarms] = useState<FarmDTO[]>(initialFarms || []);
   const [crops, setCrops] = useState<CropMasterDTO[]>(initialCrops || []);
-  const [loadingData, setLoadingData] = useState<boolean>(!initialFarms || initialFarms.length === 0);
+  const [loadingData, setLoadingData] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Form state
@@ -67,80 +59,80 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
     if (!isOpen) return;
 
     let isMounted = true;
-    setLoadingData(true);
-    setLoadError(null);
     setSubmitError(null);
+    setLoadError(null);
 
-    Promise.all([
-      getFarmerFarms().catch(() => [] as FarmDTO[]),
-      getCrops().catch(() => [] as CropMasterDTO[]),
-    ])
-      .then(([farmsData, cropsData]) => {
-        if (!isMounted) return;
-        setFarms(farmsData);
-        setCrops(cropsData);
+    if (initialFarms && initialFarms.length > 0) {
+      setFarms(initialFarms);
+      if (!selectedFarmId) setSelectedFarmId(initialFarms[0].id);
+    }
+    if (initialCrops && initialCrops.length > 0) {
+      setCrops(initialCrops);
+      if (!selectedCropId) setSelectedCropId(initialCrops[0].id);
+    }
 
-        // Auto-select first farm if available and none selected
-        if (farmsData.length > 0 && !selectedFarmId) {
-          setSelectedFarmId(farmsData[0].id);
-        }
-        // Auto-select first crop if available and none selected
-        if (cropsData.length > 0 && !selectedCropId) {
-          setSelectedCropId(cropsData[0].id);
-        }
-      })
-      .catch((err) => {
-        if (!isMounted) return;
-        setLoadError(err instanceof Error ? err.message : 'Unable to load farm parcels. Please try again.');
-      })
-      .finally(() => {
-        if (isMounted) setLoadingData(false);
-      });
+    const needsFarms = !initialFarms || initialFarms.length === 0;
+    const needsCrops = !initialCrops || initialCrops.length === 0;
+
+    if (needsFarms || needsCrops) {
+      setLoadingData(true);
+      Promise.all([
+        needsFarms ? getFarmerFarms().catch(() => [] as FarmDTO[]) : Promise.resolve(initialFarms || []),
+        needsCrops ? getCrops().catch(() => [] as CropMasterDTO[]) : Promise.resolve(initialCrops || []),
+      ])
+        .then(([farmsData, cropsData]) => {
+          if (!isMounted) return;
+          setFarms(farmsData);
+          setCrops(cropsData);
+
+          if (farmsData.length > 0 && !selectedFarmId) {
+            setSelectedFarmId(farmsData[0].id);
+          }
+          if (cropsData.length > 0 && !selectedCropId) {
+            setSelectedCropId(cropsData[0].id);
+          }
+        })
+        .catch((err) => {
+          if (!isMounted) return;
+          setLoadError(err instanceof Error ? err.message : 'Unable to load crop data. Please try again.');
+        })
+        .finally(() => {
+          if (isMounted) setLoadingData(false);
+        });
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, [isOpen, initialFarms, initialCrops]);
 
-  // Keep selection valid if farms list updates
+  // Keep farm selection updated in background
   useEffect(() => {
     if (farms.length > 0 && !selectedFarmId) {
       setSelectedFarmId(farms[0].id);
     }
   }, [farms, selectedFarmId]);
 
-  // Selected farm details
-  const selectedFarm = useMemo(() => {
-    return farms.find((f) => f.id === selectedFarmId) || null;
-  }, [farms, selectedFarmId]);
-
-  // Selected crop details
-  const selectedCrop = useMemo(() => {
-    return crops.find((c) => c.id === selectedCropId) || null;
+  // Keep crop selection updated
+  useEffect(() => {
+    if (crops.length > 0 && !selectedCropId) {
+      setSelectedCropId(crops[0].id);
+    }
   }, [crops, selectedCropId]);
 
-  // Cultivated area validation
+  // Cultivated area validation: area > 0
   const areaValidation = useMemo(() => {
     if (!cultivatedArea.trim()) {
-      return { isValid: false, error: null }; // Clean empty state
+      return { isValid: false, error: null };
     }
     const val = parseFloat(cultivatedArea);
     if (isNaN(val) || val <= 0) {
       return { isValid: false, error: 'Cultivated area must be greater than 0 acres.' };
     }
-    if (selectedFarm) {
-      const maxArea = Number(selectedFarm.totalAreaAcres || 0);
-      if (maxArea > 0 && val > maxArea) {
-        return {
-          isValid: false,
-          error: `Cultivated area cannot exceed the selected farm parcel's available area (${maxArea.toFixed(2)} Acres).`,
-        };
-      }
-    }
     return { isValid: true, error: null };
-  }, [cultivatedArea, selectedFarm]);
+  }, [cultivatedArea]);
 
-  // Expected yield validation
+  // Expected yield validation: yield > 0
   const yieldValidation = useMemo(() => {
     if (!expectedYield.trim()) {
       return { isValid: false, error: null };
@@ -155,7 +147,6 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
   // Form submittability
   const canSubmit = useMemo(() => {
     return (
-      Boolean(selectedFarmId) &&
       Boolean(selectedCropId) &&
       Boolean(season) &&
       areaValidation.isValid &&
@@ -163,17 +154,13 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
       !isSubmitting &&
       !loadingData
     );
-  }, [selectedFarmId, selectedCropId, season, areaValidation.isValid, yieldValidation.isValid, isSubmitting, loadingData]);
+  }, [selectedCropId, season, areaValidation.isValid, yieldValidation.isValid, isSubmitting, loadingData]);
 
   // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
-    if (!selectedFarmId) {
-      setSubmitError('Please select a registered farm parcel.');
-      return;
-    }
     if (!selectedCropId) {
       setSubmitError('Please select an eligible crop from the catalog.');
       return;
@@ -187,10 +174,18 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
       return;
     }
 
+    const farmId = selectedFarmId || (farms.length > 0 ? farms[0].id : '');
+    if (!farmId) {
+      setSubmitError(
+        'Mandi regulations require an active land record associated with your farmer profile. No registered land parcel was found for this account. Please contact mandi administration.'
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
-        farmId: selectedFarmId,
+        farmId,
         cropId: selectedCropId,
         season,
         cultivatedArea: parseFloat(cultivatedArea),
@@ -217,7 +212,7 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Header */}
         <div className="bg-neutral-900 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
@@ -229,7 +224,7 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
                 Register Cultivated Crop
               </h3>
               <p className="text-[11px] text-neutral-400">
-                Link crop cultivation to certified land parcels for statutory MSP procurement
+                Register your seasonal crop to access statutory MSP procurement
               </p>
             </div>
           </div>
@@ -244,7 +239,7 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-5">
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
           {/* General Submit Error */}
           {submitError && (
             <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start space-x-2.5">
@@ -261,205 +256,99 @@ export const RegisterCropModal: React.FC<RegisterCropModalProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} id="register-crop-form" className="space-y-5">
-            {/* STEP 1: Land Parcel & Crop Selection */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-xs font-bold text-neutral-800 uppercase tracking-wider">
-                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
-                  1
-                </span>
-                <span>Land Parcel & Crop Catalog</span>
-              </div>
-
-              {/* Farm Parcel Dropdown */}
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                  Select Farm Parcel <span className="text-rose-500">*</span>
-                </label>
-
-                {loadingData ? (
-                  <div className="w-full px-3.5 py-3 rounded-xl border border-neutral-200 bg-neutral-50 text-xs text-neutral-500 flex items-center space-x-2">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
-                    <span>Loading your registered land parcels...</span>
-                  </div>
-                ) : farms.length === 0 ? (
-                  <div className="p-4 bg-amber-50/70 border border-amber-200/90 rounded-xl text-xs text-amber-900 space-y-2.5">
-                    <div className="flex items-start space-x-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold block">No farm parcels registered yet</span>
-                        <span className="text-[11px] text-amber-800">
-                          You need at least one registered land parcel to record cultivated crops for MSP procurement.
-                        </span>
-                      </div>
-                    </div>
-                    {onOpenAddFarm && (
-                      <div className="pt-1">
-                        <Button
-                          type="button"
-                          variant="primary"
-                          size="sm"
-                          onClick={onOpenAddFarm}
-                          className="text-xs flex items-center space-x-1.5"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>+ Register Land Parcel</span>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <select
-                        id="farm-parcel-select"
-                        value={selectedFarmId}
-                        onChange={(e) => setSelectedFarmId(e.target.value)}
-                        className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 pr-10 text-xs sm:text-sm bg-white text-neutral-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-600 appearance-none cursor-pointer transition-all"
-                      >
-                        <option value="">Select Farm Parcel...</option>
-                        {farms.map((farm) => (
-                          <option key={farm.id} value={farm.id}>
-                            {farm.farmName} • {Number(farm.totalAreaAcres || 0).toFixed(2)} Acres • {farm.village || 'Primary Plot'} ({farm.verificationStatus || 'Verified'})
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-3 pointer-events-none" />
-                    </div>
-
-                    {/* Selected Farm Information Card */}
-                    {selectedFarm && (
-                      <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 text-xs text-neutral-700 flex flex-wrap items-center justify-between gap-2 animate-fadeIn">
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                          <div>
-                            <span className="font-bold text-emerald-950 block sm:inline">
-                              {selectedFarm.farmName}
-                            </span>
-                            <span className="text-[11px] text-neutral-600 sm:ml-2">
-                              {selectedFarm.village ? `${selectedFarm.village}, ` : ''}{selectedFarm.district || 'Karnal'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 text-[11px]">
-                          <span className="text-neutral-600">
-                            Available Area: <strong className="text-neutral-900">{Number(selectedFarm.totalAreaAcres || 0).toFixed(2)} Acres</strong>
-                          </span>
-                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-semibold">
-                            <ShieldCheck className="w-3 h-3 text-emerald-700" />
-                            <span>{selectedFarm.verificationStatus || 'DILRMP Verified'}</span>
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* 2-Column Crop and Season Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                {/* Crop Selection */}
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                    Crop <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="crop-select"
-                      value={selectedCropId}
-                      onChange={(e) => setSelectedCropId(e.target.value)}
-                      className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 pr-10 text-xs sm:text-sm bg-white text-neutral-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-600 appearance-none cursor-pointer transition-all"
-                    >
-                      <option value="">Select Crop...</option>
-                      {crops.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.code})
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-3 pointer-events-none" />
-                  </div>
+          <form onSubmit={handleSubmit} id="register-crop-form" className="space-y-4">
+            {/* Crop Selection */}
+            <div>
+              <label htmlFor="crop-select" className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                Crop <span className="text-rose-500">*</span>
+              </label>
+              {loadingData && crops.length === 0 ? (
+                <div className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-xs text-neutral-500 flex items-center space-x-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                  <span>Loading crops catalog...</span>
                 </div>
-
-                {/* Season Selection */}
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                    Agricultural Season <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="season-select"
-                      value={season}
-                      onChange={(e) => setSeason(e.target.value as 'KHARIF' | 'RABI' | 'ZAID')}
-                      className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 pr-10 text-xs sm:text-sm bg-white text-neutral-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-600 appearance-none cursor-pointer transition-all"
-                    >
-                      <option value="RABI">Rabi (Winter)</option>
-                      <option value="KHARIF">Kharif (Monsoon)</option>
-                      <option value="ZAID">Zaid (Summer)</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-3 pointer-events-none" />
-                  </div>
+              ) : (
+                <div className="relative">
+                  <select
+                    id="crop-select"
+                    value={selectedCropId}
+                    onChange={(e) => setSelectedCropId(e.target.value)}
+                    className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 pr-10 text-xs sm:text-sm bg-white text-neutral-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-600 appearance-none cursor-pointer transition-all"
+                    required
+                  >
+                    <option value="">Select Crop...</option>
+                    {crops.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.code})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-3 pointer-events-none" />
                 </div>
+              )}
+            </div>
+
+            {/* Season Selection */}
+            <div>
+              <label htmlFor="season-select" className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                Season <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  id="season-select"
+                  value={season}
+                  onChange={(e) => setSeason(e.target.value as 'KHARIF' | 'RABI' | 'ZAID')}
+                  className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 pr-10 text-xs sm:text-sm bg-white text-neutral-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-600 appearance-none cursor-pointer transition-all"
+                  required
+                >
+                  <option value="RABI">Rabi (Winter)</option>
+                  <option value="KHARIF">Kharif (Monsoon)</option>
+                  <option value="ZAID">Zaid (Summer)</option>
+                </select>
+                <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-3 pointer-events-none" />
               </div>
             </div>
 
-            {/* STEP 2: Cultivation Details */}
-            <div className="space-y-3 pt-2 border-t border-neutral-100">
-              <div className="flex items-center space-x-2 text-xs font-bold text-neutral-800 uppercase tracking-wider">
-                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
-                  2
-                </span>
-                <span>Cultivation & Harvest Yield Estimates</span>
-              </div>
+            {/* Cultivated Area Input */}
+            <div>
+              <Input
+                id="cultivated-area-input"
+                label="Cultivated Area (Acres) *"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={cultivatedArea}
+                onChange={(e) => setCultivatedArea(e.target.value)}
+                placeholder="e.g. 2.50"
+                error={areaValidation.error || undefined}
+                helperText="Enter the cultivated land area in acres"
+                required
+              />
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {/* Cultivated Area Input */}
-                <div>
-                  <Input
-                    id="cultivated-area-input"
-                    label="Cultivated Area (Acres) *"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    max={selectedFarm ? String(selectedFarm.totalAreaAcres) : undefined}
-                    value={cultivatedArea}
-                    onChange={(e) => setCultivatedArea(e.target.value)}
-                    placeholder="e.g. 2.50"
-                    error={areaValidation.error || undefined}
-                    helperText={
-                      selectedFarm
-                        ? `Maximum ${Number(selectedFarm.totalAreaAcres || 0).toFixed(2)} acres available for this parcel`
-                        : 'Select a farm parcel first to validate available acreage'
-                    }
-                    required
-                  />
-                </div>
+            {/* Expected Yield Input */}
+            <div>
+              <Input
+                id="expected-yield-input"
+                label="Expected Yield (Quintals) *"
+                type="number"
+                step="0.1"
+                min="0.1"
+                value={expectedYield}
+                onChange={(e) => setExpectedYield(e.target.value)}
+                placeholder="e.g. 45"
+                error={yieldValidation.error || undefined}
+                helperText="Enter your estimated harvest quantity in quintals"
+                required
+              />
+            </div>
 
-                {/* Expected Yield Input */}
-                <div>
-                  <Input
-                    id="expected-yield-input"
-                    label="Expected Yield (Quintals) *"
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    value={expectedYield}
-                    onChange={(e) => setExpectedYield(e.target.value)}
-                    placeholder="e.g. 45"
-                    error={yieldValidation.error || undefined}
-                    helperText="Enter your estimated harvest quantity in quintals"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Informative Guidance Banner */}
-              <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 text-[11px] text-neutral-600 flex items-start space-x-2">
-                <Info className="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5" />
-                <span>
-                  Registered crops will automatically receive an official MSP lock upon harvest scheduling and become eligible for direct payment transfer (DBT) to your linked bank account.
-                </span>
-              </div>
+            {/* Informative Guidance Banner */}
+            <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 text-[11px] text-neutral-600 flex items-start space-x-2">
+              <Info className="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5" />
+              <span>
+                Registered crops will receive an official MSP lock upon harvest scheduling and become eligible for direct payment transfer (DBT).
+              </span>
             </div>
           </form>
         </div>

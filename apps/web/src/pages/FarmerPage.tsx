@@ -26,7 +26,6 @@ import {
   ChevronRight,
   Bell,
   Eye,
-  XCircle,
   CloudSun,
   Droplets,
   Languages,
@@ -71,20 +70,7 @@ export const FarmerPage: React.FC = () => {
   // Modals state
   const [showBookingWizard, setShowBookingWizard] = useState<boolean>(false);
   const [selectedBookingForPass, setSelectedBookingForPass] = useState<BookingDTO | null>(null);
-  const [showAddFarm, setShowAddFarm] = useState<boolean>(false);
   const [showAddCrop, setShowAddCrop] = useState<boolean>(false);
-
-  // Form states for Farm
-  const [farmForm, setFarmForm] = useState({
-    farmName: '',
-    landParcelNumber: '',
-    totalAreaAcres: '',
-    village: '',
-    district: '',
-    state: '',
-    irrigationType: 'Tube Well',
-    soilType: 'Alluvial Loam',
-  });
 
 
   // Master Crops Catalog
@@ -155,42 +141,7 @@ export const FarmerPage: React.FC = () => {
     loadAllData();
   }, [loadAllData]);
 
-  // Handle Add Farm Parcel
-  const handleCreateFarm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const payload = {
-        farmName: farmForm.farmName,
-        landParcelNumber: farmForm.landParcelNumber,
-        totalAreaAcres: parseFloat(farmForm.totalAreaAcres),
-        village: farmForm.village || dashboardData?.farmer?.village || 'Taraori',
-        district: farmForm.district || dashboardData?.farmer?.primaryDistrict || 'Karnal',
-        state: farmForm.state || dashboardData?.farmer?.primaryState || 'Haryana',
-        irrigationType: farmForm.irrigationType,
-        soilType: farmForm.soilType,
-      };
 
-      const res = await apiClient.post('/farmer/farms', payload);
-      if (res.data?.success) {
-        setFeedback(`Land parcel "${payload.farmName}" successfully registered.`);
-        setShowAddFarm(false);
-        setFarmForm({
-          farmName: '',
-          landParcelNumber: '',
-          totalAreaAcres: '',
-          village: '',
-          district: '',
-          state: '',
-          irrigationType: 'Tube Well',
-          soilType: 'Alluvial Loam',
-        });
-        await loadAllData();
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to register land parcel.');
-    }
-  };
 
 
   // Handle Booking Cancellation
@@ -295,18 +246,6 @@ export const FarmerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Security Context Banner */}
-      <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-emerald-900">
-        <div className="flex items-center space-x-2">
-          <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>
-            <strong>Digital Public Infrastructure:</strong> Identity bound via Zero-Knowledge Aadhaar hash & DILRMP geo-referenced Khasra survey numbers. Mandi gate passes cryptographically signed by backend HMAC.
-          </span>
-        </div>
-        <span className="font-mono text-[10px] text-emerald-800 bg-white/80 px-2 py-0.5 rounded border border-emerald-300 shrink-0">
-          KCC: {farmerProfile?.kccNumber || 'KCC-HR-98214'}
-        </span>
-      </div>
 
       {/* Free Integrations Strip: Open-Meteo Weather & Gemini Translation */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -613,125 +552,81 @@ export const FarmerPage: React.FC = () => {
       {/* TAB 2: FARMS & CROPS */}
       {activeTab === 'FARMS_CROPS' && (
         <div className="space-y-6">
-          {/* Farm Parcels Card */}
-          <Card
-            title="Registered Land Parcels (DILRMP Synced)"
-            subtitle="Geo-referenced Khasra survey boundaries and soil classifications"
-          >
-            <div className="space-y-4 pt-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-neutral-500">
-                  Total Land Registered: <strong>{registeredFarms.reduce((a, f) => a + Number(f.totalAreaAcres || 0), 0)} Acres</strong>
-                </span>
-                <Button variant="secondary" size="sm" onClick={() => setShowAddFarm(true)}>
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  <span>Register Land Parcel</span>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {registeredFarms.map((farm) => (
-                  <div key={farm.id} className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-neutral-900 text-sm">{farm.farmName}</span>
-                      <Badge variant="success">Verified Survey</Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-[11px] text-neutral-600">
-                      <div>Khasra Survey: <span className="font-mono font-semibold text-neutral-800">{farm.landParcelNumber}</span></div>
-                      <div>Area: <span className="font-semibold text-neutral-800">{farm.totalAreaAcres} Acres</span></div>
-                      <div>Location: <span className="text-neutral-800">{farm.village}</span></div>
-                      <div>Soil: <span className="text-neutral-800">Alluvial Loam</span></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
-
-          {/* Registered Cultivated Crops Card */}
           <Card
             title="Cultivated Crops & Expected Yields"
-            subtitle="Active seasonal crops eligible for statutory MSP procurement"
+            subtitle="Register your crops and access transparent MSP procurement services."
+            headerAction={
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowAddCrop(true)}
+                className="flex items-center space-x-1.5 shadow-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Add Cultivated Crop</span>
+              </Button>
+            }
           >
-            <div className="space-y-4 pt-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-neutral-500">
-                  Crops ready for procurement: <strong>{registeredCrops.length} Records</strong>
-                </span>
-                <Button variant="secondary" size="sm" onClick={() => setShowAddCrop(true)}>
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  <span>Add Cultivated Crop</span>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {registeredCrops.map((c) => (
-                  <div key={c.id} className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-neutral-900">{c.cropName}</span>
-                      <Badge variant="info">{c.season}</Badge>
-                    </div>
-                    <div className="text-[11px] text-neutral-600 space-y-1">
-                      <div>Cultivated Area: <span className="font-semibold text-neutral-900">{c.cultivatedArea} Acres</span></div>
-                      <div>Expected Yield: <span className="font-semibold text-neutral-900">{c.expectedYield || 120} Quintals</span></div>
-                      <div className="text-emerald-700 font-bold pt-1">
-                        Statutory MSP: ₹2,275 / Qtl
-                      </div>
-                    </div>
+            <div className="pt-2">
+              {registeredCrops.length === 0 ? (
+                <div className="py-12 px-4 text-center bg-neutral-50 rounded-2xl border border-dashed border-neutral-300 space-y-3">
+                  <div className="text-4xl">🌱</div>
+                  <h4 className="text-base font-bold text-neutral-900">
+                    No cultivated crops registered yet
+                  </h4>
+                  <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                    Register your crop to access MSP procurement.
+                  </p>
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowAddCrop(true)}
+                      className="inline-flex items-center space-x-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Cultivated Crop</span>
+                    </Button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center text-xs text-neutral-500">
+                    <span>
+                      Crops ready for procurement: <strong className="text-neutral-900">{registeredCrops.length} Records</strong>
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {registeredCrops.map((c) => (
+                      <div
+                        key={c.id}
+                        className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2.5 text-xs hover:border-emerald-300 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-neutral-900 text-sm">{c.cropName}</span>
+                          <Badge variant="info">{c.season}</Badge>
+                        </div>
+                        <div className="text-[12px] text-neutral-600 space-y-1">
+                          <div className="flex justify-between">
+                            <span>Cultivated Area:</span>
+                            <span className="font-semibold text-neutral-900">{c.cultivatedArea} Acres</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Expected Yield:</span>
+                            <span className="font-semibold text-neutral-900">{c.expectedYield || 120} Quintals</span>
+                          </div>
+                          <div className="text-emerald-700 font-bold pt-1 flex justify-between border-t border-neutral-200/80 mt-1">
+                            <span>Statutory MSP:</span>
+                            <span>Eligible</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
-
-          {/* Add Farm Modal */}
-          {showAddFarm && (
-            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 border border-neutral-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-neutral-900">Register Land Parcel</h3>
-                  <button onClick={() => setShowAddFarm(false)} className="text-neutral-400 hover:text-neutral-600">
-                    <XCircle className="w-5 h-5" />
-                  </button>
-                </div>
-                <form onSubmit={handleCreateFarm} className="space-y-3 text-xs">
-                  <div>
-                    <label className="font-semibold block mb-1">Farm / Parcel Name</label>
-                    <Input
-                      value={farmForm.farmName}
-                      onChange={(e) => setFarmForm({ ...farmForm, farmName: e.target.value })}
-                      placeholder="e.g. North Canal Plot"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold block mb-1">DILRMP Khasra Survey #</label>
-                    <Input
-                      value={farmForm.landParcelNumber}
-                      onChange={(e) => setFarmForm({ ...farmForm, landParcelNumber: e.target.value })}
-                      placeholder="e.g. KHASRA-452/12"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold block mb-1">Total Area (Acres)</label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={farmForm.totalAreaAcres}
-                      onChange={(e) => setFarmForm({ ...farmForm, totalAreaAcres: e.target.value })}
-                      placeholder="e.g. 5.5"
-                      required
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2 pt-2">
-                    <Button variant="secondary" size="sm" type="button" onClick={() => setShowAddFarm(false)}>Cancel</Button>
-                    <Button variant="primary" size="sm" type="submit">Save Parcel</Button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
 
           {/* Add Crop Modal */}
           <RegisterCropModal
@@ -740,10 +635,6 @@ export const FarmerPage: React.FC = () => {
             onCropRegistered={async () => {
               setFeedback('Crop cultivation registered successfully.');
               await loadAllData();
-            }}
-            onOpenAddFarm={() => {
-              setShowAddCrop(false);
-              setShowAddFarm(true);
             }}
             initialFarms={registeredFarms}
             initialCrops={masterCrops}
